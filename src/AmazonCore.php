@@ -412,92 +412,50 @@ abstract class AmazonCore
 
         $store = Config::get('amazon-mws.store');
 
-        if (array_key_exists($s, $store)) {
+        if (!array_key_exists($s, $store)) {
 
-            $this->storeName = $s;
-
-            if (array_key_exists('merchantId', $store[$s])) {
-                $this->options['SellerId'] = $store[$s]['merchantId'];
-            } else {
-                $this->log("Merchant ID is missing!", 'Warning');
-            }
-
-            if (array_key_exists('MWSAuthToken', $store[$s]) && !empty($store[$s]['MWSAuthToken'])) {
-                $this->isDeveloperSign = true;
-                $developer = Config::get('amazon-mws.developer');
-
-                $area = isset($store[$s]['area']) && !empty($store[$s]['area']) ? $store[$s]['area'] : 'USA';
-                $developer = $developer[$area];
-                $this->options['MWSAuthToken'] = $store[$s]['MWSAuthToken'];
-                if (empty($this->options['MWSAuthToken'])) {
-                    $this->log("MWSAuthToken is missing!", 'Warning');
-                }
-
-                if (!isset($developer['secret'])  || empty($developer['secret'])) {
-                    $this->log("Developer Secret is missing!", 'Warning');
-                }
-                if (isset($developer['id']) && !empty($developer['id'])) {
-                    $this->options['AWSAccessKeyId'] = $developer['id'];
-                } else {
-                    $this->log("Access Key ID is missing!", 'Warning');
-                }
-
-            } else {
-
-                if (array_key_exists('keyId', $store[$s])) {
-                    $this->options['AWSAccessKeyId'] = $store[$s]['keyId'];
-                }
-                if(empty($this->options['AWSAccessKeyId'])){
-                    $this->log("Access Key ID is missing!", 'Warning');
-                }
-                if (!array_key_exists('secretKey', $store[$s])) {
-                    $this->log("Secret Key is missing!", 'Warning');
-                }
-
-            }
-
-            // Overwrite Amazon service url if specified
-            if (array_key_exists('amazonServiceUrl', $store[$s])) {
-                $AMAZON_SERVICE_URL = $store[$s]['amazonServiceUrl'];
-                $this->urlbase = $AMAZON_SERVICE_URL;
-            }
-
-
-            /*$this->storeName = $s;
-            if (array_key_exists('merchantId', $store[$s])) {
-                $this->options['SellerId'] = $store[$s]['merchantId'];
-            } else {
-                $this->log("Merchant ID is missing!", 'Warning');
-            }
-            if (array_key_exists('keyId', $store[$s])) {
-                $this->options['AWSAccessKeyId'] = $store[$s]['keyId'];
-            } else {
-                $this->log("Access Key ID is missing!", 'Warning');
-            }
-            if (!array_key_exists('secretKey', $store[$s])) {
-                $this->log("Secret Key is missing!", 'Warning');
-            }
-            // Overwrite Amazon service url if specified
-            if (array_key_exists('amazonServiceUrl', $store[$s])) {
-                $AMAZON_SERVICE_URL = $store[$s]['amazonServiceUrl'];
-                $this->urlbase = $AMAZON_SERVICE_URL;
-            }
-            if (array_key_exists('proxyInfo', $store[$s])) {
-                $this->proxyInfo = $store[$s]['proxyInfo'];
-            }
-
-            if (array_key_exists('authToken', $store[$s]) && !empty($store[$s]['authToken'])) {
-                $this->options['MWSAuthToken'] = $store[$s]['authToken'];
-            }
-
-            if (array_key_exists('marketplaceId', $store[$s]) && !empty($store[$s]['marketplaceId'])) {
-                $this->marketplaceId = $store[$s]['marketplaceId'];
-            }*/
-
-        } else {
             throw new \Exception("Store $s does not exist!");
             $this->log("Store $s does not exist!", 'Warning');
         }
+
+        $this->storeName = $s;
+
+        if (array_key_exists('merchantId', $store[$s])) {
+            $this->options['SellerId'] = $store[$s]['merchantId'];
+        } else {
+            $this->log("Merchant ID is missing!", 'Warning');
+        }
+
+        if (!array_key_exists('MWSAuthToken', $store[$s]) || !isset($store[$s]['MWSAuthToken']) || empty($store[$s]['MWSAuthToken'])) {
+            throw new \Exception("Store $s does not exist!");
+            $this->log("Store $s 未授权!", 'Warning');
+        }
+
+        $this->isDeveloperSign = true;
+        $developer = Config::get('amazon-mws.developer');
+
+        $area = isset($store[$s]['area']) && !empty($store[$s]['area']) ? $store[$s]['area'] : 'USA';
+        $developer = $developer[$area];
+        $this->options['MWSAuthToken'] = $store[$s]['MWSAuthToken'];
+        if (empty($this->options['MWSAuthToken'])) {
+            $this->log("MWSAuthToken is missing!", 'Warning');
+        }
+
+        if (!isset($developer['secret'])  || empty($developer['secret'])) {
+            $this->log("Developer Secret is missing!", 'Warning');
+        }
+        if (isset($developer['id']) && !empty($developer['id'])) {
+            $this->options['AWSAccessKeyId'] = $developer['id'];
+        } else {
+            $this->log("Access Key ID is missing!", 'Warning');
+        }
+
+        // Overwrite Amazon service url if specified
+        if (array_key_exists('amazonServiceUrl', $store[$s])) {
+            $AMAZON_SERVICE_URL = $store[$s]['amazonServiceUrl'];
+            $this->urlbase = $AMAZON_SERVICE_URL;
+        }
+
     }
 
     /**
