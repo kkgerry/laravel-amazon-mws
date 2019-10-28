@@ -1,6 +1,7 @@
 <?php namespace Kkgerry\AmazonMws;
 
 use Config, Log;
+use AmazonLog;
 use DateTime;
 use Exception;
 
@@ -510,7 +511,8 @@ abstract class AmazonCore
                     $loglevel = 'info';
             }
 
-            call_user_func(array('Log', $loglevel), $msg);
+            //call_user_func(array('Log', $loglevel), $msg);
+            @call_user_func(array('AmazonLog', $loglevel), $msg);
 
             if (isset($userName) && $userName != '') {
                 $name = $userName;
