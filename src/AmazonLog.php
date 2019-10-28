@@ -25,7 +25,7 @@ class AmazonLog
     static function RecordLog($message,$type='info')
     {
         if(!empty($message)) {
-            $path = storage_path('logs') . '/amazon/s' . date("Y-m-d") . '.log';
+            $path = storage_path('logs') . '/amazon/' . date("Y-m-d") . '.log';
             $content = date('Y-m-d H:i:s') . ' ';
             $content .= 'Amazon ['.$type.']: ' . $message. "\r\n";
             file_put_contents($path, $content, FILE_APPEND);
