@@ -1,4 +1,5 @@
 <?php
+namespace Kkgerry\AmazonMws;
 class AmazonLog
 {
     static function info($message)

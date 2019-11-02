@@ -512,7 +512,7 @@ abstract class AmazonCore
             }
 
             //call_user_func(array('Log', $loglevel), $msg);
-            @call_user_func(array('AmazonLog', $loglevel), $msg);
+            @call_user_func_array(['\Kkgerry\AmazonMws\AmazonLog',$loglevel],[$msg]);
 
             if (isset($userName) && $userName != '') {
                 $name = $userName;
