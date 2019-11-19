@@ -575,64 +575,6 @@ class AmazonShipmentList extends AmazonInboundCore implements \Iterator
     }
 
     /**
-     * 获取箱唛pdf
-     * User: Gerry
-     * Date: 2019-11-06 14:20
-     * @param array $data  ShipmentId,PageType,NumberOfPackages
-     * @return array|bool
-     * @throws Exception
-     */
-    public function getPackageLabels($data = array())
-    {
-
-        if(!isset($data['ShipmentId']) || empty($data['ShipmentId'])){
-            $this->log("parameter : ShipmentId error", 'Urgent');
-            return false;
-        }
-        if(!isset($data['PageType']) || empty($data['PageType'])){
-            $this->log("parameter : PageType error", 'Urgent');
-            return false;
-        }
-        if(!isset($data['NumberOfPackages']) || empty($data['NumberOfPackages'])){
-            $this->log("parameter : NumberOfPackages error", 'Urgent');
-            return false;
-        }
-
-        $this->options['Action'] = 'GetPackageLabels';
-        $this->options['ShipmentId'] = $data['ShipmentId'];
-        $this->options['PageType'] = $data['PageType'];
-        $this->options['NumberOfPackages'] = $data['NumberOfPackages'];
-        try {
-            $url = $this->urlbase . $this->urlbranch;
-            $query = $this->genQuery();
-            $path = $this->options['Action'] . 'Result';
-            if ($this->mockMode) {
-                $xml = $this->fetchMockFile()->$path;
-            } else {
-                $response = $this->sendRequest($url, array('Post' => $query));
-                if (!$this->checkResponse($response)) {
-                    return false;
-                }
-
-                $xml = simplexml_load_string($response['body'])->$path;
-            }
-
-            if (!$xml) {
-                return false;
-            }
-            $pdf = [
-                'PdfDocument' => (string)$xml->TransportDocument->PdfDocument,
-                'Checksum' => (string)$xml->TransportDocument->Checksum,
-            ];
-            return $pdf;
-        }catch (Exception $e) {
-            throw new InvalidArgumentException('Get Package Label error.');
-        }
-
-    }
-
-
-    /**
      * Iterator function
      * @return type
      */
