@@ -993,4 +993,17 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
         }
     }
 
+
+    /**
+     * 获取优惠券付款事件列表
+     * @return bool
+     */
+    public function getCouponPaymentEvents(){
+        if (isset($this->list['CouponPayment'])){
+            return $this->list['CouponPayment'];
+        } else {
+            return false;
+        }
+    }
+
 }
