@@ -466,7 +466,7 @@ class AmazonShipment extends AmazonInboundCore
      * @throws Exception
      * @throws \Exception
      */
-    public function ConfirmShipment($data = array())
+    public function confirmShipment($data = array())
     {
         if(!isset($data['ShipmentId']) || empty($data['ShipmentId'])){
             $this->log("parameter : ShipmentId error", 'Urgent');
