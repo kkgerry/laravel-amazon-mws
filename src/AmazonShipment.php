@@ -51,6 +51,27 @@ class AmazonShipment extends AmazonInboundCore
     }
 
     /**
+     * Automatically fills in the necessary fields using a header array.
+     *
+     * This information is required to submit a shipment.
+     * @param array $x <p>plan array from <i>AmazonShipmentPlanner</i></p>
+     * @return boolean <b>FALSE</b> if improper input
+     */
+    public function setHeader($x)
+    {
+        if (is_array($x) && $x['ShipmentId'] && $x['ShipmentName']&& $x['DestinationFulfillmentCenterId'] && $x['LabelPrepType']) {
+            $this->options['InboundShipmentHeader.ShipmentId'] = $x['ShipmentId'];
+            $this->options['InboundShipmentHeader.ShipmentName'] = $x['ShipmentName'];
+            $this->options['InboundShipmentHeader.DestinationFulfillmentCenterId'] = $x['DestinationFulfillmentCenterId'];
+            $this->options['InboundShipmentHeader.LabelPrepType'] = $x['LabelPrepType'];
+
+        } else {
+            $this->log("setHeader requires an array", 'Warning');
+            return false;
+        }
+    }
+
+    /**
      * Automatically fills in the necessary fields using a planner array.
      *
      * This information is required to submit a shipment.
@@ -61,6 +82,10 @@ class AmazonShipment extends AmazonInboundCore
     {
         if (is_array($x)) {
             $this->options['ShipmentId'] = $x['ShipmentId'];
+
+            if(isset($x['ShipmentName'])){
+                $this->options['InboundShipmentHeader.ShipmentName'] = $x['ShipmentName'];
+            }
 
             //inheriting address
             $this->setAddress($x['ShipToAddress']);
@@ -420,12 +445,317 @@ class AmazonShipment extends AmazonInboundCore
 
 
     /**
-     * 取消入库计划
+     * 设置货件运输信息
+     * @param $a
+     * @return bool
+     * @throws \Exception
+     */
+    public function setTransportDetails($data = array())
+    {
+        if(!isset($data['ShipmentId']) || empty($data['ShipmentId'])){
+            $this->log("parameter : ShipmentId error", 'Urgent');
+            return false;
+        }
+
+        if(!isset($data['IsPartnered'])){
+            $this->log("parameter : IsPartnered error", 'Urgent');
+            return false;
+        }
+
+        if(!isset($data['ShipmentType']) || empty($data['ShipmentType']) || !in_array($data['ShipmentType'],['SP','LTL'])){
+            $this->log("parameter : ShipmentType error", 'Urgent');
+            return false;
+        }
+
+        if($data['IsPartnered'] && $data['ShipmentType'] == 'SP'){
+            if (!isset($data['PackageList']) || empty($data['PackageList']) || !is_array($data['PackageList'])) {
+                $this->log("Tried to set package list to invalid values", 'Warning');
+                return false;
+            }
+            $i = 1;
+
+            foreach ($data['PackageList'] as $x){
+                if (is_array($x)  && array_key_exists('Length', $x) && array_key_exists('Width', $x) && array_key_exists('Height', $x)
+                    && array_key_exists('DimensionsUnit', $x)
+                    && array_key_exists('WeightUnit', $x) && array_key_exists('WeightValue', $x)) {
+                    $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Dimensions.Length'] = $x['Length'];
+                    $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Dimensions.Width'] = $x['Width'];
+                    $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Dimensions.Height'] = $x['Height'];
+                    $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Dimensions.Unit'] = $x['DimensionsUnit'];
+
+                    $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Weight.Unit'] = $x['WeightUnit'];
+                    $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Weight.value'] = $x['WeightValue'];
+                    $i++;
+                } else {
+                    $this->log("Tried to set PackageList with invalid array", 'Warning');
+                    return false;
+                }
+            }
+        }elseif (!$data['IsPartnered'] && $data['ShipmentType'] == 'SP'){
+            if(!isset($data['CarrierName']) || empty($data['CarrierName'])){
+                $this->log("parameter : CarrierName error", 'Warning');
+                return false;
+            }
+            $this->options['TransportDetails.NonPartneredSmallParcelData.CarrierName'] = $data['CarrierName'];
+            if (!isset($data['PackageList']) || empty($data['PackageList']) || !is_array($data['PackageList'])) {
+                $this->log("Tried to set package list to invalid values", 'Warning');
+                return false;
+            }
+            $i = 1;
+            foreach ($data['PackageList'] as $x){
+                if (is_array($x) && array_key_exists('TrackingId', $x)) {
+                    $this->options['TransportDetails.NonPartneredSmallParcelData.PackageList.member.' . $i . '.TrackingId'] = $x['TrackingId'];
+                    $i++;
+                } else {
+                    $this->log("Tried to set PackageList with invalid array", 'Warning');
+                    return false;
+                }
+            }
+        }elseif ($data['IsPartnered'] && $data['ShipmentType'] == 'LTL'){
+            if (is_array($data) && array_key_exists('Contact', $data) && array_key_exists('BoxCount', $data) && array_key_exists('FreightReadyDate', $data)) {
+                $this->options['TransportDetails.PartneredLtlData.Contact'] = $data['Contact'];
+                $this->options['TransportDetails.PartneredLtlData.BoxCount'] = $data['BoxCount'];
+                $this->options['TransportDetails.PartneredLtlData.FreightReadyDate'] = $data['FreightReadyDate'];
+            } else {
+                $this->log("Tried to set PartneredLtlData with invalid array", 'Warning');
+                return false;
+            }
+        }elseif (!$data['IsPartnered'] && $data['ShipmentType'] == 'LTL'){
+            if (is_array($data) && array_key_exists('CarrierName', $data) && array_key_exists('ProNumber', $data)) {
+                $this->options['TransportDetails.NonPartneredLtlData.CarrierName'] = $data['CarrierName'];
+                $this->options['TransportDetails.NonPartneredLtlData.ProNumber'] = $data['ProNumber'];
+            } else {
+                $this->log("Tried to set NonPartneredLtlData with invalid array", 'Warning');
+                return false;
+            }
+        }
+    }
+
+    /**
+     * 向亚马逊发送入库货件的运输信息。
+     * @param array $data
+     * @return bool|\SimpleXMLElement
+     * @throws \Exception
+     */
+    public function putTransportContent($data = array())
+    {
+        if(!isset($data['ShipmentId']) || empty($data['ShipmentId'])){
+            $this->log("parameter : ShipmentId error", 'Urgent');
+            return false;
+        }
+
+        if(!isset($data['IsPartnered']) || empty($data['IsPartnered'])){
+            $this->log("parameter : IsPartnered error", 'Urgent');
+            return false;
+        }
+
+        if(!isset($data['ShipmentType']) || empty($data['ShipmentType']) || !in_array($data['ShipmentType'],['SP','LTL'])){
+            $this->log("parameter : ShipmentType error", 'Urgent');
+            return false;
+        }
+
+        if(!isset($data['ShipmentType']) || empty($data['ShipmentType']) || !in_array($data['ShipmentType'],['SP','LTL'])){
+            $this->log("parameter : ShipmentType error", 'Urgent');
+            return false;
+        }
+
+        if($data['IsPartnered'] && $data['ShipmentType'] == 'SP'){
+            if (!array_key_exists('TransportDetails.PartneredSmallParcelData.PackageList.member.1.Weight', $this->options)) {
+                $this->log("parameter : TransportDetails error", 'Urgent');
+                return false;
+            }
+        }elseif (!$data['IsPartnered'] && $data['ShipmentType'] == 'SP'){
+            if (!array_key_exists('TransportDetails.NonPartneredSmallParcelData.PackageList.member.1.TrackingId', $this->options)) {
+                $this->log("parameter : TransportDetails error", 'Urgent');
+                return false;
+            }
+        }elseif ($data['IsPartnered'] && $data['ShipmentType'] == 'LTL'){
+            if (!array_key_exists('TransportDetails.PartneredLtlData.Contact', $this->options)) {
+                $this->log("parameter : TransportDetails error", 'Urgent');
+                return false;
+            }
+        }elseif (!$data['IsPartnered'] && $data['ShipmentType'] == 'LTL'){
+            if (!array_key_exists('TransportDetails.NonPartneredLtlData.CarrierName', $this->options)) {
+                $this->log("parameter : TransportDetails error", 'Urgent');
+                return false;
+            }
+        }
+
+        $this->options['ShipmentId'] = $data['ShipmentId'];
+        $this->options['IsPartnered'] = $data['IsPartnered'];
+        $this->options['ShipmentType'] = $data['ShipmentType'];
+        $this->options['Action'] = 'PutTransportContent';
+        try {
+            $url = $this->urlbase . $this->urlbranch;
+            $query = $this->genQuery();
+            $path = $this->options['Action'] . 'Result';
+            if ($this->mockMode) {
+                $xml = $this->fetchMockFile()->$path;
+            } else {
+                $response = $this->sendRequest($url, array('Post' => $query));
+                if (!$this->checkResponse($response)) {
+                    return false;
+                }
+
+                $xml = simplexml_load_string($response['body'])->$path;
+            }
+
+            if (!$xml) {
+                return false;
+            }
+
+            return true;
+        }catch (Exception $e) {
+            throw new InvalidArgumentException('Put Shipment Transport Content error.');
+        }
+
+    }
+
+
+    /**
+     * 预估由亚马逊合作承运人配送的入库货件的运费
+     * @param array $data
+     * @return bool
+     * @throws Exception
+     * @throws \Exception
+     */
+    public function estimateTransport($data = array())
+    {
+        if(!isset($data['ShipmentId']) || empty($data['ShipmentId'])){
+            $this->log("parameter : ShipmentId error", 'Urgent');
+            return false;
+        }
+        $this->options['Action'] = 'EstimateTransportRequest';
+        $this->options['ShipmentId'] = $data['ShipmentId'];
+        try {
+            $url = $this->urlbase . $this->urlbranch;
+            $query = $this->genQuery();
+            $path = $this->options['Action'] . 'Result';
+            if ($this->mockMode) {
+                $xml = $this->fetchMockFile()->$path;
+            } else {
+                $response = $this->sendRequest($url, array('Post' => $query));
+                if (!$this->checkResponse($response)) {
+                    return false;
+                }
+
+                $xml = simplexml_load_string($response['body'])->$path;
+            }
+
+            if (!$xml) {
+                return false;
+            }
+
+            return true;
+        }catch (Exception $e) {
+            throw new InvalidArgumentException('Estimate Transport error.');
+        }
+
+    }
+
+    /**
+     * 获取包裹运输信息
+     * @param array $data
+     * @return xml
+     * @throws \Exception
+     */
+    public function getTransportContent($data = array())
+    {
+        if(!isset($data['ShipmentId']) || empty($data['ShipmentId'])){
+            $this->log("parameter : ShipmentId error", 'Urgent');
+            return false;
+        }
+        $this->options['Action'] = 'GetTransportContent';
+        $this->options['ShipmentId'] = $data['ShipmentId'];
+        try {
+            $url = $this->urlbase . $this->urlbranch;
+            $query = $this->genQuery();
+            $path = $this->options['Action'] . 'Result';
+            if ($this->mockMode) {
+                $xml = $this->fetchMockFile()->$path;
+            } else {
+                $response = $this->sendRequest($url, array('Post' => $query));
+                if (!$this->checkResponse($response)) {
+                    return false;
+                }
+
+                $xml = simplexml_load_string($response['body'])->$path;
+            }
+
+            if (!$xml) {
+                return false;
+            }
+
+            $data = [];
+            if(isset($xml->TransportContent->TransportHeader)){
+                $data['TransportContent']['TransportHeader']['SellerId'] = (string)$xml->TransportContent->TransportHeader->SellerId;
+                $data['TransportContent']['TransportHeader']['IsPartnered'] = (string)$xml->TransportContent->TransportHeader->IsPartnered;
+                $data['TransportContent']['TransportHeader']['ShipmentId'] = (string)$xml->TransportContent->TransportHeader->ShipmentId;
+                $data['TransportContent']['TransportHeader']['ShipmentType'] = (string)$xml->TransportContent->TransportHeader->ShipmentType;
+            }
+            if(isset($xml->TransportContent->TransportResult)){
+                $data['TransportContent']['TransportResult']['TransportStatus'] = (string)$xml->TransportContent->TransportResult->TransportStatus;
+            }
+            if(isset($xml->TransportContent->TransportDetails)){
+                $transportDetails = $xml->TransportContent->TransportDetails;
+
+                if(isset($transportDetails->PartneredSmallParcelData)){
+                    foreach ($transportDetails->PartneredSmallParcelData->PackageList->children() as $p){
+                        $packageList = [
+                            'TrackingId' => (string)$p->TrackingId,
+                            'PackageStatus' => (string)$p->PackageStatus,
+                            'CarrierName' => (string)$p->CarrierName,
+                        ] ;
+                        $packageList['Dimensions'] = [
+                            'Unit' => (string)$p->Dimensions->Unit,
+                            'Length' => (string)$p->Dimensions->Length,
+                            'Width' => (string)$p->Dimensions->Width,
+                            'Height' => (string)$p->Dimensions->Height,
+                        ];
+                        $packageList['Weight'] = [
+                            'Unit' => (string)$p->Weight->Unit,
+                            'Value' => (string)$p->Weight->Value,
+                        ];
+                        $data['TransportContent']['TransportDetails']['PartneredSmallParcelData']['PackageList'] = $packageList;
+                    }
+                    $data['TransportContent']['TransportDetails']['PartneredSmallParcelData']['PartneredEstimate'] = (string)$transportDetails->PartneredEstimate;
+                }
+
+                if(isset($transportDetails->NonPartneredSmallParcelData)){
+                    foreach ($transportDetails->NonPartneredSmallParcelData->PackageList->children() as $p){
+                        $data['TransportContent']['TransportDetails']['NonPartneredSmallParcelData']['PackageList'] = [
+                            'CarrierName' => (string)$p->CarrierName,
+                            'PackageStatus' => (string)$p->PackageStatus,
+                            'TrackingId' => (string)$p->TrackingId,
+                        ] ;
+                    }
+                }
+
+                if(isset($transportDetails->PartneredLtlData)){
+                    $data['TransportContent']['TransportDetails']['PartneredLtlData']['Contact'] = (string)$transportDetails->PartneredLtlData->Contact;
+                    $data['TransportContent']['TransportDetails']['PartneredLtlData']['BoxCount'] = (string)$transportDetails->PartneredLtlData->BoxCount;
+                    $data['TransportContent']['TransportDetails']['PartneredLtlData']['FreightReadyDate'] = (string)$transportDetails->PartneredLtlData->FreightReadyDate;
+                }
+
+                if(isset($transportDetails->NonPartneredLtlData)){
+                    $data['TransportContent']['TransportDetails']['NonPartneredLtlData']['Contact'] = (string)$transportDetails->NonPartneredLtlData->CarrierName;
+                    $data['TransportContent']['TransportDetails']['NonPartneredLtlData']['ProNumber'] = (string)$transportDetails->NonPartneredLtlData->ProNumber;
+                }
+            }
+            return $data;
+        }catch (Exception $e) {
+            throw new InvalidArgumentException('Get Shipment Transport Content error.');
+        }
+
+    }
+
+    /**
+     * 取消发货运输信息
      * @param array $data
      * @return bool
      * @throws \Exception
      */
-    public function voidShipment($data = array())
+    public function voidTransport($data = array())
     {
         if(!isset($data['ShipmentId']) || empty($data['ShipmentId'])){
             $this->log("parameter : ShipmentId error", 'Urgent');

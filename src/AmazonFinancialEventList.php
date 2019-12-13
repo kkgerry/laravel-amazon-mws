@@ -428,6 +428,32 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
                 $this->list['Adjustment'][] = $temp;
             }
         }
+        if (isset($xml->CouponPaymentEventList)) {
+            foreach($xml->CouponPaymentEventList->children() as $x) {
+                $temp = array();
+                if (isset($x->TotalAmount)) {
+                    $temp['TotalAmount']['CurrencyAmount'] = (string)$x->TotalAmount->CurrencyAmount;
+                    $temp['TotalAmount']['CurrencyCode'] = (string)$x->TotalAmount->CurrencyCode;
+                }
+                $temp['PaymentEventId'] = (string)$x->PaymentEventId;
+                $temp['SellerCouponDescription'] = (string)$x->SellerCouponDescription;
+                if (isset($x->FeeComponent)) {
+                    $temp['FeeComponent']['FeeAmount']['CurrencyAmount'] = (string)$x->FeeComponent->FeeAmount->CurrencyAmount;
+                    $temp['FeeComponent']['FeeAmount']['CurrencyCode'] = (string)$x->FeeComponent->FeeAmount->CurrencyCode;
+                    $temp['FeeComponent']['FeeType'] = (string)$x->FeeComponent->FeeType;
+                }
+                if (isset($x->ChargeComponent)) {
+                    $temp['ChargeComponent']['ChargeType'] = (string)$x->ChargeComponent->ChargeType;
+                    $temp['ChargeComponent']['ChargeAmount']['CurrencyAmount'] = (string)$x->ChargeComponent->ChargeAmount->CurrencyAmount;
+                    $temp['ChargeComponent']['ChargeAmount']['CurrencyCode'] = (string)$x->ChargeComponent->ChargeAmount->CurrencyCode;
+                }
+                $temp['CouponId'] = (string)$x->CouponId;
+                $temp['ClipOrRedemptionCount'] = (string)$x->ClipOrRedemptionCount;
+                $temp['PostedDate'] = (string)$x->PostedDate;
+
+                $this->list['CouponPayment'][] = $temp;
+            }
+        }
     }
 
     /**
@@ -602,6 +628,7 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
      * @see getDebtRecoveryEvents
      * @see getLoanServicingEvents
      * @see getAdjustmentEvents
+     * @see getCouponPaymentEvents
      */
     public function getEvents(){
         if (isset($this->list)){
@@ -995,8 +1022,28 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
 
 
     /**
-     * 获取优惠券付款事件列表
-     * @return bool
+     * Returns all coupon payment events.
+     *
+     * Each event array will have the following keys:
+     * <ul>
+     * <li><b>TotalAmount</b> (optional) - array with <b>CurrencyAmount</b> and <b>CurrencyCode</b></li>
+     * <li><b>PaymentEventId</b></li>
+     * <li><b>SellerCouponDescription</b> (optional)</li>
+     * <li><b>FeeComponent</b> - multi-dimensional array, each with the following keys:</li>
+     * <ul>
+     * <li><b>FeeAmount</b> (optional) - array with <b>CurrencyAmount</b> and <b>CurrencyCode</b></li>
+     * <li><b>FeeType</b></li>
+     * </ul>
+     * <li><b>ChargeComponent</b> - multi-dimensional array, each array has the following keys:</li>
+     * <ul>
+     * <li><b>ChargeType</b></li>
+     * <li><b>ChargeAmount</b>  (optional) - array with <b>CurrencyAmount</b> and <b>CurrencyCode</b></li>
+     * </ul>
+     * <li><b>CouponId</b></li>
+     * <li><b>ClipOrRedemptionCount</b> - number</li>
+     * <li><b>PostedDate</b></li>
+     * </ul>
+     * @return array|boolean multi-dimensional array, or <b>FALSE</b> if list not filled yet
      */
     public function getCouponPaymentEvents(){
         if (isset($this->list['CouponPayment'])){
