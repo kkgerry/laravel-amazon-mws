@@ -484,7 +484,7 @@ class AmazonShipment extends AmazonInboundCore
                     $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Dimensions.Unit'] = $x['DimensionsUnit'];
 
                     $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Weight.Unit'] = $x['WeightUnit'];
-                    $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Weight.value'] = $x['WeightValue'];
+                    $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Weight.Value'] = $x['WeightValue'];
                     $i++;
                 } else {
                     $this->log("Tried to set PackageList with invalid array", 'Warning');
@@ -544,7 +544,7 @@ class AmazonShipment extends AmazonInboundCore
             return false;
         }
 
-        if(!isset($data['IsPartnered']) || empty($data['IsPartnered'])){
+        if(!isset($data['IsPartnered'])){
             $this->log("parameter : IsPartnered error", 'Urgent');
             return false;
         }
@@ -560,7 +560,7 @@ class AmazonShipment extends AmazonInboundCore
         }
 
         if($data['IsPartnered'] && $data['ShipmentType'] == 'SP'){
-            if (!array_key_exists('TransportDetails.PartneredSmallParcelData.PackageList.member.1.Weight', $this->options)) {
+            if (!array_key_exists('TransportDetails.PartneredSmallParcelData.PackageList.member.1.Weight.Unit', $this->options)) {
                 $this->log("parameter : TransportDetails error", 'Urgent');
                 return false;
             }
@@ -718,7 +718,10 @@ class AmazonShipment extends AmazonInboundCore
                         ];
                         $data['TransportContent']['TransportDetails']['PartneredSmallParcelData']['PackageList'] = $packageList;
                     }
-                    $data['TransportContent']['TransportDetails']['PartneredSmallParcelData']['PartneredEstimate'] = (string)$transportDetails->PartneredEstimate;
+                    $data['TransportContent']['TransportDetails']['PartneredSmallParcelData']['PartneredEstimate'] = [
+                        'CurrencyCode' => (string)$transportDetails->PartneredSmallParcelData->PartneredEstimate->Amount->CurrencyCode,
+                        'Value' => (string)$transportDetails->PartneredSmallParcelData->PartneredEstimate->Amount->Value,
+                    ];
                 }
 
                 if(isset($transportDetails->NonPartneredSmallParcelData)){
