@@ -469,7 +469,7 @@ class AmazonShipment extends AmazonInboundCore
 
         if($data['IsPartnered'] === 'true' && $data['ShipmentType'] == 'SP'){
             if (!isset($data['PackageList']) || empty($data['PackageList']) || !is_array($data['PackageList'])) {
-                $this->log("Tried to set package list to invalid values", 'Warning');
+                $this->log("Tried to set PackageList list to invalid values", 'Warning');
                 return false;
             }
             $i = 1;
@@ -482,7 +482,6 @@ class AmazonShipment extends AmazonInboundCore
                     $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Dimensions.Width'] = $x['Width'];
                     $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Dimensions.Height'] = $x['Height'];
                     $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Dimensions.Unit'] = $x['DimensionsUnit'];
-
                     $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Weight.Unit'] = $x['WeightUnit'];
                     $this->options['TransportDetails.PartneredSmallParcelData.PackageList.member.' . $i . '.Weight.Value'] = $x['WeightValue'];
                     $i++;
@@ -513,9 +512,46 @@ class AmazonShipment extends AmazonInboundCore
             }
         }elseif ($data['IsPartnered'] === 'true' && $data['ShipmentType'] == 'LTL'){
             if (is_array($data) && array_key_exists('Contact', $data) && array_key_exists('BoxCount', $data) && array_key_exists('FreightReadyDate', $data)) {
-                $this->options['TransportDetails.PartneredLtlData.Contact'] = $data['Contact'];
+                if(is_array($data['Contact'])
+                    && array_key_exists('Name', $data['Contact'])
+                    && array_key_exists('Phone', $data['Contact'])
+                    && array_key_exists('Email', $data['Contact'])
+                    && array_key_exists('Fax', $data['Contact'])){
+                }else{
+                    $this->log("Tried to set PartneredLtlData with invalid Contact array", 'Warning');
+                    return false;
+                }
+                $this->options['TransportDetails.PartneredLtlData.Contact.Name'] = $data['Contact']['Name'];
+                $this->options['TransportDetails.PartneredLtlData.Contact.Phone'] = $data['Contact']['Phone'];
+                $this->options['TransportDetails.PartneredLtlData.Contact.Email'] = $data['Contact']['Email'];
+                $this->options['TransportDetails.PartneredLtlData.Contact.Fax'] = $data['Contact']['Fax'];
                 $this->options['TransportDetails.PartneredLtlData.BoxCount'] = $data['BoxCount'];
                 $this->options['TransportDetails.PartneredLtlData.FreightReadyDate'] = $data['FreightReadyDate'];
+
+                if (isset($data['PalletList']) && !empty($data['PalletList']) && is_array($data['PalletList'])) {
+                    $i = 1;
+                    foreach ($data['PalletList'] as $x){
+                        if (is_array($x)  && array_key_exists('Length', $x)
+                            && array_key_exists('Width', $x)
+                            && array_key_exists('Height', $x)
+                            && array_key_exists('DimensionsUnit', $x)
+                            && array_key_exists('WeightUnit', $x)
+                            && array_key_exists('WeightValue', $x)
+                            && array_key_exists('IsStacked', $x)) {
+                            $this->options['TransportDetails.PartneredLtlData.PalletList.member.' . $i . '.Dimensions.Length'] = $x['Length'];
+                            $this->options['TransportDetails.PartneredLtlData.PalletList.member.' . $i . '.Dimensions.Width'] = $x['Width'];
+                            $this->options['TransportDetails.PartneredLtlData.PalletList.member.' . $i . '.Dimensions.Height'] = $x['Height'];
+                            $this->options['TransportDetails.PartneredLtlData.PalletList.member.' . $i . '.Dimensions.Unit'] = $x['DimensionsUnit'];
+                            $this->options['TransportDetails.PartneredLtlData.PalletList.member.' . $i . '.Weight.Unit'] = $x['WeightUnit'];
+                            $this->options['TransportDetails.PartneredLtlData.PalletList.member.' . $i . '.Weight.Value'] = $x['WeightValue'];
+                            $this->options['TransportDetails.PartneredLtlData.PalletList.member.' . $i . '.IsStacked'] = $x['IsStacked'];
+                            $i++;
+                        } else {
+                            $this->log("Tried to set PalletList with invalid array", 'Warning');
+                            return false;
+                        }
+                    }
+                }
             } else {
                 $this->log("Tried to set PartneredLtlData with invalid array", 'Warning');
                 return false;
@@ -570,7 +606,7 @@ class AmazonShipment extends AmazonInboundCore
                 return false;
             }
         }elseif ($data['IsPartnered'] === 'true' && $data['ShipmentType'] == 'LTL'){
-            if (!array_key_exists('TransportDetails.PartneredLtlData.Contact', $this->options)) {
+            if (!array_key_exists('TransportDetails.PartneredLtlData.Contact.Name', $this->options)) {
                 $this->log("parameter : TransportDetails error", 'Urgent');
                 return false;
             }
