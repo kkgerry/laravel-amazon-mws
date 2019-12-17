@@ -467,7 +467,7 @@ class AmazonShipment extends AmazonInboundCore
             return false;
         }
 
-        if($data['IsPartnered'] && $data['ShipmentType'] == 'SP'){
+        if($data['IsPartnered'] === 'true' && $data['ShipmentType'] == 'SP'){
             if (!isset($data['PackageList']) || empty($data['PackageList']) || !is_array($data['PackageList'])) {
                 $this->log("Tried to set package list to invalid values", 'Warning');
                 return false;
@@ -491,7 +491,7 @@ class AmazonShipment extends AmazonInboundCore
                     return false;
                 }
             }
-        }elseif (!$data['IsPartnered'] && $data['ShipmentType'] == 'SP'){
+        }elseif ($data['IsPartnered'] === 'false' && $data['ShipmentType'] == 'SP'){
             if(!isset($data['CarrierName']) || empty($data['CarrierName'])){
                 $this->log("parameter : CarrierName error", 'Warning');
                 return false;
@@ -511,7 +511,7 @@ class AmazonShipment extends AmazonInboundCore
                     return false;
                 }
             }
-        }elseif ($data['IsPartnered'] && $data['ShipmentType'] == 'LTL'){
+        }elseif ($data['IsPartnered'] === 'true' && $data['ShipmentType'] == 'LTL'){
             if (is_array($data) && array_key_exists('Contact', $data) && array_key_exists('BoxCount', $data) && array_key_exists('FreightReadyDate', $data)) {
                 $this->options['TransportDetails.PartneredLtlData.Contact'] = $data['Contact'];
                 $this->options['TransportDetails.PartneredLtlData.BoxCount'] = $data['BoxCount'];
@@ -520,7 +520,7 @@ class AmazonShipment extends AmazonInboundCore
                 $this->log("Tried to set PartneredLtlData with invalid array", 'Warning');
                 return false;
             }
-        }elseif (!$data['IsPartnered'] && $data['ShipmentType'] == 'LTL'){
+        }elseif ($data['IsPartnered'] === 'false' && $data['ShipmentType'] == 'LTL'){
             if (is_array($data) && array_key_exists('CarrierName', $data) && array_key_exists('ProNumber', $data)) {
                 $this->options['TransportDetails.NonPartneredLtlData.CarrierName'] = $data['CarrierName'];
                 $this->options['TransportDetails.NonPartneredLtlData.ProNumber'] = $data['ProNumber'];
@@ -559,22 +559,22 @@ class AmazonShipment extends AmazonInboundCore
             return false;
         }
 
-        if($data['IsPartnered'] && $data['ShipmentType'] == 'SP'){
+        if($data['IsPartnered'] === 'true' && $data['ShipmentType'] == 'SP'){
             if (!array_key_exists('TransportDetails.PartneredSmallParcelData.PackageList.member.1.Weight.Unit', $this->options)) {
                 $this->log("parameter : TransportDetails error", 'Urgent');
                 return false;
             }
-        }elseif (!$data['IsPartnered'] && $data['ShipmentType'] == 'SP'){
+        }elseif ($data['IsPartnered'] === 'false' && $data['ShipmentType'] == 'SP'){
             if (!array_key_exists('TransportDetails.NonPartneredSmallParcelData.PackageList.member.1.TrackingId', $this->options)) {
                 $this->log("parameter : TransportDetails error", 'Urgent');
                 return false;
             }
-        }elseif ($data['IsPartnered'] && $data['ShipmentType'] == 'LTL'){
+        }elseif ($data['IsPartnered'] === 'true' && $data['ShipmentType'] == 'LTL'){
             if (!array_key_exists('TransportDetails.PartneredLtlData.Contact', $this->options)) {
                 $this->log("parameter : TransportDetails error", 'Urgent');
                 return false;
             }
-        }elseif (!$data['IsPartnered'] && $data['ShipmentType'] == 'LTL'){
+        }elseif ($data['IsPartnered'] === 'false' && $data['ShipmentType'] == 'LTL'){
             if (!array_key_exists('TransportDetails.NonPartneredLtlData.CarrierName', $this->options)) {
                 $this->log("parameter : TransportDetails error", 'Urgent');
                 return false;
