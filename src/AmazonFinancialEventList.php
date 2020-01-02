@@ -454,6 +454,52 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
                 $this->list['CouponPayment'][] = $temp;
             }
         }
+
+        if (isset($xml->ProductAdsPaymentEventList)) {
+            foreach($xml->ProductAdsPaymentEventList->children() as $x) {
+                $temp = array();
+                $temp['PostedDate'] = (string)$x->PostedDate;
+                $temp['transactionType'] = (string)$x->transactionType;
+                $temp['invoiceId'] = (string)$x->invoiceId;
+                $temp['baseValue']['CurrencyAmount'] = (string)$x->baseValue->CurrencyAmount;
+                $temp['baseValue']['CurrencyCode'] = (string)$x->baseValue->CurrencyCode;
+                $temp['taxValue']['CurrencyAmount'] = (string)$x->taxValue->CurrencyAmount;
+                $temp['taxValue']['CurrencyCode'] = (string)$x->taxValue->CurrencyCode;
+                $temp['transactionValue']['CurrencyAmount'] = (string)$x->transactionValue->CurrencyAmount;
+                $temp['transactionValue']['CurrencyCode'] = (string)$x->transactionValue->CurrencyCode;
+
+                $this->list['ProductAdsPayment'][] = $temp;
+            }
+        }
+
+        if (isset($xml->SellerReviewEnrollmentPaymentEventList)) {
+            foreach($xml->SellerReviewEnrollmentPaymentEventList->children() as $x) {
+                $temp = array();
+                $temp['PostedDate'] = (string)$x->PostedDate;
+                $temp['EnrollmentId'] = (string)$x->EnrollmentId;
+                $temp['ParentASIN'] = (string)$x->ParentASIN;
+
+                if (isset($x->FeeComponent)) {
+                    $temp['FeeComponent']['FeeAmount']['CurrencyAmount'] = (string)$x->FeeComponent->FeeAmount->CurrencyAmount;
+                    $temp['FeeComponent']['FeeAmount']['CurrencyCode'] = (string)$x->FeeComponent->FeeAmount->CurrencyCode;
+                    $temp['FeeComponent']['FeeType'] = (string)$x->FeeComponent->FeeType;
+                }
+
+                if (isset($x->ChargeComponent)) {
+                    $temp['ChargeComponent']['ChargeType'] = (string)$x->ChargeComponent->ChargeType;
+                    $temp['ChargeComponent']['ChargeAmount']['CurrencyAmount'] = (string)$x->ChargeComponent->ChargeAmount->CurrencyAmount;
+                    $temp['ChargeComponent']['ChargeAmount']['CurrencyCode'] = (string)$x->ChargeComponent->ChargeAmount->CurrencyCode;
+                }
+
+                if (isset($x->TotalAmount)) {
+                    $temp['TotalAmount']['CurrencyAmount'] = (string)$x->TotalAmount->CurrencyAmount;
+                    $temp['TotalAmount']['CurrencyCode'] = (string)$x->TotalAmount->CurrencyCode;
+                }
+
+
+                $this->list['SellerReviewEnrollmentPayment'][] = $temp;
+            }
+        }
     }
 
     /**
@@ -1048,6 +1094,22 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
     public function getCouponPaymentEvents(){
         if (isset($this->list['CouponPayment'])){
             return $this->list['CouponPayment'];
+        } else {
+            return false;
+        }
+    }
+
+    public function getProductAdsPaymentEvents(){
+        if (isset($this->list['ProductAdsPayment'])){
+            return $this->list['ProductAdsPayment'];
+        } else {
+            return false;
+        }
+    }
+
+    public function getSellerReviewEnrollmentPaymentEvents(){
+        if (isset($this->list['SellerReviewEnrollmentPayment'])){
+            return $this->list['SellerReviewEnrollmentPayment'];
         } else {
             return false;
         }
