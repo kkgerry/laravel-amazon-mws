@@ -59,7 +59,7 @@ class AmazonShipment extends AmazonInboundCore
      */
     public function setHeader($x)
     {
-        if (is_array($x) && $x['ShipmentId'] && $x['ShipmentName']&& $x['DestinationFulfillmentCenterId'] && $x['LabelPrepPreference']) {
+        if (is_array($x) && $x['ShipmentName']&& $x['DestinationFulfillmentCenterId'] && $x['LabelPrepPreference']) {
             $this->options['InboundShipmentHeader.ShipmentName'] = $x['ShipmentName'];
             $this->options['InboundShipmentHeader.DestinationFulfillmentCenterId'] = $x['DestinationFulfillmentCenterId'];
             $this->options['InboundShipmentHeader.LabelPrepPreference'] = $x['LabelPrepPreference'];
