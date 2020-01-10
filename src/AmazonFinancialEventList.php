@@ -410,6 +410,7 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
                 $temp['AdjustmentType'] = (string)$x->AdjustmentType;
                 $temp['Amount'] = (string)$x->AdjustmentAmount->CurrencyAmount;
                 $temp['CurrencyCode'] = (string)$x->AdjustmentAmount->CurrencyCode;
+                $temp['PostedDate'] = (string)$x->PostedDate;
                 if (isset($x->AdjustmentItemList)) {
                     foreach($x->AdjustmentItemList->children() as $z) {
                         $ztemp = array();
