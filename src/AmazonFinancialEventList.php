@@ -459,7 +459,7 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
         if (isset($xml->ProductAdsPaymentEventList)) {
             foreach($xml->ProductAdsPaymentEventList->children() as $x) {
                 $temp = array();
-                $temp['PostedDate'] = (string)$x->PostedDate;
+                $temp['PostedDate'] = (string)$x->postedDate;
                 $temp['transactionType'] = (string)$x->transactionType;
                 $temp['invoiceId'] = (string)$x->invoiceId;
                 $temp['baseValue']['CurrencyAmount'] = (string)$x->baseValue->CurrencyAmount;
