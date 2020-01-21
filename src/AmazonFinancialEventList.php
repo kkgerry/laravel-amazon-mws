@@ -230,10 +230,13 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
      * @param SimpleXMLElement $xml <p>The XML response from Amazon.</p>
      * @return boolean <b>FALSE</b> if no XML data is found
      */
-    protected function parseXml($xml) {
+    public function parseXml($xml) {
         if (!$xml) {
             return false;
         }
+
+        $this->list['xml_list'][] = $xml->asXML();
+
         if (isset($xml->ShipmentEventList)) {
             foreach($xml->ShipmentEventList->children() as $x) {
                 $this->list['Shipment'][] = $this->parseShipmentEvent($x);
@@ -499,6 +502,34 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
 
 
                 $this->list['SellerReviewEnrollmentPayment'][] = $temp;
+            }
+        }
+
+
+        if (isset($xml->SellerDealPaymentEventList)) {
+            foreach($xml->SellerDealPaymentEventList->children() as $x) {
+                $temp = array();
+                $temp['PostedDate'] = (string)$x->postedDate;
+                if (isset($x->totalAmount)) {
+                    $temp['totalAmount']['CurrencyAmount'] = (string)$x->totalAmount->CurrencyAmount;
+                    $temp['totalAmount']['CurrencyCode'] = (string)$x->totalAmount->CurrencyCode;
+                }
+
+                if (isset($x->feeAmount)) {
+                    $temp['feeAmount']['CurrencyAmount'] = (string)$x->feeAmount->CurrencyAmount;
+                    $temp['feeAmount']['CurrencyCode'] = (string)$x->feeAmount->CurrencyCode;
+                }
+
+                $temp['dealId'] = (string)$x->dealId;
+                $temp['eventType'] = (string)$x->eventType;
+                $temp['feeType'] = (string)$x->feeType;
+                $temp['dealDescription'] = (string)$x->dealDescription;
+
+                if (isset($x->taxAmount)) {
+                    $temp['taxAmount']['CurrencyAmount'] = (string)$x->taxAmount->CurrencyAmount;
+                    $temp['taxAmount']['CurrencyCode'] = (string)$x->taxAmount->CurrencyCode;
+                }
+                $this->list['SellerDealPayment'][] = $temp;
             }
         }
     }
