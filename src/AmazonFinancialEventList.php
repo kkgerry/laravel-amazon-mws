@@ -594,6 +594,11 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
             'PromotionList',
             'PromotionAdjustmentList',
         );
+
+        $itemTaxWithheldList = array(
+            'ItemTaxWithheldList',
+            'ItemTaxWithheldAdjustmentList',
+          );
         foreach ($itemLists as $key) {
             if (isset($xml->$key)) {
                 foreach($xml->$key->children() as $x) {
@@ -630,6 +635,13 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
                             }
                         }
                     }
+                    foreach ($itemTaxWithheldList as $zkey) {
+                        if (isset($x->$zkey)) {
+                            foreach($x->$zkey->TaxWithheldComponent->TaxesWithheld->children() as $z) {
+                                $temp[$zkey][] = $this->parseTaxWithheld($z);
+                              }
+                          }
+                      }
                     if (isset($x->CostOfPointsGranted)) {
                         $temp['CostOfPointsGranted']['Amount'] = (string)$x->CostOfPointsGranted->CurrencyAmount;
                         $temp['CostOfPointsGranted']['CurrencyCode'] = (string)$x->CostOfPointsGranted->CurrencyCode;
@@ -672,6 +684,20 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
         $r['CurrencyCode'] = (string)$xml->FeeAmount->CurrencyCode;
         return $r;
     }
+
+    /**
+     * Parses XML for a single charge into an array.
+     * This structure is used many times throughout shipment events.
+     * @param SimpleXMLElement $xml <p>The XML response from Amazon.</p>
+     * @return array parsed structure from XML
+     */
+     protected function parseTaxWithheld($xml) {
+         $r = array();
+         $r['ChargeType'] = (string)$xml->ChargeType;
+         $r['Amount'] = (string)$xml->ChargeAmount->CurrencyAmount;
+         $r['CurrencyCode'] = (string)$xml->ChargeAmount->CurrencyCode;
+         return $r;
+     }
 
     /**
      * Returns all financial events.
