@@ -88,6 +88,7 @@ abstract class AmazonProductsCore extends AmazonCore
                 $this->log("Warning: product return was not successful", 'Warning');
             }
             if (isset($x->Products)) {
+                $x->Products->Product->addChild('AttributeId',$temp['@attributes']['Id']);
                 foreach ($x->Products->children() as $z) {
                     $this->productList[$this->index] = new AmazonProduct($this->storeName, $z, $this->mockMode,
                         $this->mockFiles);

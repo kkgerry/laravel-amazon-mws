@@ -75,10 +75,19 @@ class AmazonProduct extends AmazonProductsCore
             return;
         }
 
+        if($xml->getName() == 'Id'){
+            $temp = (array)$xml;
+            $this->data['attributes'] = $temp['@attributes'];
+        }
+
         if ($xml->getName() != 'Product') {
             return;
         }
 
+        //AttributeId
+        if ($xml->AttributeId) {
+            $this->data['AttributeId'] = (string)$xml->AttributeId;
+        }
         //Identifiers
         if ($xml->Identifiers) {
             foreach ($xml->Identifiers->children() as $x) {
@@ -141,11 +150,11 @@ class AmazonProduct extends AmazonProductsCore
         //Relationships
         if ($xml->Relationships) {
             $i = 0;
-            foreach ($xml->Relationships->children('ns2', true) as $x) {
+            foreach ($xml->Relationships->children() as $x) {
 
-                foreach ($x->children('ns2', true) as $y) {
+                /*foreach ($x->children('ns2', true) as $y) {
                     $this->data['Relationships'][$i][$y->getName()] = (string)$y;
-                }
+                }*/
                 foreach ($x->children() as $y) {
                     foreach ($y->children() as $z) {
 
@@ -157,7 +166,7 @@ class AmazonProduct extends AmazonProductsCore
                 $i++;
             }
         }
-        
+
         //CompetitivePricing
         if ($xml->CompetitivePricing) {
             //CompetitivePrices
@@ -202,10 +211,12 @@ class AmazonProduct extends AmazonProductsCore
 
         //SalesRankings
         if ($xml->SalesRankings) {
+            $i = 0;
             foreach ($xml->SalesRankings->children() as $x) {
                 foreach ($x->children() as $y) {
-                    $this->data['SalesRankings'][$x->getName()][$y->getName()] = (string)$y;
+                    $this->data['SalesRankings'][$x->getName()][$i][$y->getName()] = (string)$y;
                 }
+                $i++;
             }
         }
 
