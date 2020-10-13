@@ -75,11 +75,6 @@ class AmazonProduct extends AmazonProductsCore
             return;
         }
 
-        if($xml->getName() == 'Id'){
-            $temp = (array)$xml;
-            $this->data['attributes'] = $temp['@attributes'];
-        }
-
         if ($xml->getName() != 'Product') {
             return;
         }
