@@ -731,6 +731,7 @@ abstract class AmazonCore
     }
 
     //Functions from Athena:
+
     /**
      * Get url or send POST data
      * @param string $url
@@ -740,9 +741,12 @@ abstract class AmazonCore
      *               $return['body']  - response
      *               $return['error'] - error, if "ok" is not 1
      *               $return['head']  - http header
+     * @throws Exception
      */
     function fetchURL($url, $param)
     {
+        $this->log('Request Url: '.$url.', Param: '.json_encode($param));
+
         $return = array();
 
         $ch = curl_init();

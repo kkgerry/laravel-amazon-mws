@@ -228,14 +228,17 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
      *
      * This is what reads the response XML and converts it into an array.
      * @param SimpleXMLElement $xml <p>The XML response from Amazon.</p>
+     * @param bool $oranginal The bath retains the original data. true-yes, false-no
      * @return boolean <b>FALSE</b> if no XML data is found
      */
-    public function parseXml($xml) {
+    public function parseXml($xml,$oranginal=true) {
         if (!$xml) {
             return false;
         }
 
-        $this->list['xml_list'][] = $xml->asXML();
+        if($oranginal) {
+            $this->list['xml_list'][] = $xml->asXML();
+        }
 
         if (isset($xml->ShipmentEventList)) {
             foreach($xml->ShipmentEventList->children() as $x) {
