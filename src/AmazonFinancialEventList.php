@@ -535,6 +535,38 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
                 $this->list['SellerDealPayment'][] = $temp;
             }
         }
+
+        if (isset($xml->RemovalShipmentEventList)) {
+            foreach($xml->RemovalShipmentEventList->children() as $x) {
+                $temp = array();
+                $temp['PostedDate'] = (string)$x->PostedDate;
+                $temp['OrderId'] = (string)$x->OrderId;
+                $temp['MerchantOrderId'] = (string)$x->MerchantOrderId;
+                $temp['ParentASIN'] = (string)$x->ParentASIN;
+                $temp['TransactionType'] = (string)$x->TransactionType;
+
+                if (isset($x->RemovalShipmentItemList)) {
+                    $temp['TaxCollectionModel'] = (string)$x->RemovalShipmentItemList->RemovalShipmentItem->TaxCollectionModel ?? '';
+                    $temp['Quantity'] = (string)$x->RemovalShipmentItemList->RemovalShipmentItem->Quantity ?? 0;
+                    $temp['RemovalShipmentItemId'] = (string)$x->RemovalShipmentItemList->RemovalShipmentItem->RemovalShipmentItemId ?? '';
+                    $temp['FulfillmentNetworkSKU'] = (string)$x->RemovalShipmentItemList->RemovalShipmentItem->FulfillmentNetworkSKU ?? '';
+
+                    $temp['RemovalShipmentItem']['FeeAmount']['CurrencyCode'] = (string)$x->RemovalShipmentItemList->RemovalShipmentItem->FeeAmount->CurrencyCode ?? '';
+                    $temp['RemovalShipmentItem']['FeeAmount']['CurrencyAmount'] = (string)$x->RemovalShipmentItemList->RemovalShipmentItem->FeeAmount->CurrencyAmount ?? '0';
+
+                    $temp['RemovalShipmentItem']['Revenue']['CurrencyCode'] = (string)$x->RemovalShipmentItemList->RemovalShipmentItem->Revenue->CurrencyCode ?? '';
+                    $temp['RemovalShipmentItem']['Revenue']['CurrencyAmount'] = (string)$x->RemovalShipmentItemList->RemovalShipmentItem->Revenue->CurrencyAmount ?? '0';
+
+                    $temp['RemovalShipmentItem']['TaxAmount']['CurrencyCode'] = (string)$x->RemovalShipmentItemList->RemovalShipmentItem->TaxAmount->CurrencyCode ?? '';
+                    $temp['RemovalShipmentItem']['TaxAmount']['CurrencyAmount'] = (string)$x->RemovalShipmentItemList->RemovalShipmentItem->TaxAmount->CurrencyAmount ?? '0';
+
+                    $temp['RemovalShipmentItem']['TaxWithheld']['CurrencyCode'] = (string)$x->RemovalShipmentItemList->RemovalShipmentItem->TaxWithheld->CurrencyCode ?? '';
+                    $temp['RemovalShipmentItem']['TaxWithheld']['CurrencyAmount'] = (string)$x->RemovalShipmentItemList->RemovalShipmentItem->TaxWithheld->CurrencyAmount ?? '0';
+                }
+
+                $this->list['RemovalShipmentEventList'][] = $temp;
+            }
+        }
     }
 
     /**
