@@ -661,17 +661,17 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
                     foreach ($itemPromoLists as $zkey) {
                         if (isset($x->$zkey)) {
                             foreach($x->$zkey->children() as $z) {
-                                $ztemp = array();
-                                $ztemp['PromotionType'] = (string)$z->PromotionType;
-                                $ztemp['PromotionId'] = (string)$z->PromotionId;
-                                $ztemp['Amount'] = (string)$z->PromotionAmount->CurrencyAmount;
-                                $ztemp['CurrencyCode'] = (string)$z->PromotionAmount->CurrencyCode;
-                                $temp[$zkey][] = $ztemp;
+                                $zTemp = array();
+                                $zTemp['PromotionType'] = (string)$z->PromotionType;
+                                $zTemp['PromotionId'] = (string)$z->PromotionId;
+                                $zTemp['Amount'] = (string)$z->PromotionAmount->CurrencyAmount;
+                                $zTemp['CurrencyCode'] = (string)$z->PromotionAmount->CurrencyCode;
+                                $temp[$zkey][] = $zTemp;
                             }
                         }
                     }
                     foreach ($itemTaxWithheldList as $zkey) {
-                        if (isset($x->$zkey)) {
+                        if (isset($x->$zkey->TaxWithheldComponent->TaxesWithheld)) {
                             foreach($x->$zkey->TaxWithheldComponent->TaxesWithheld->children() as $z) {
                                 $temp[$zkey][] = $this->parseTaxWithheld($z);
                               }
@@ -721,7 +721,7 @@ class AmazonFinancialEventList extends AmazonFinanceCore {
     }
 
     /**
-     * Parses XML for a single charge into an array.
+     * Parses XML for a single tax withheld into an array.
      * This structure is used many times throughout shipment events.
      * @param SimpleXMLElement $xml <p>The XML response from Amazon.</p>
      * @return array parsed structure from XML
